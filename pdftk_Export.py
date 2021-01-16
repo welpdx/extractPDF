@@ -1,12 +1,13 @@
 
-
+#import pathlib #path
 import subprocess
 import sys
 import os
+
 import re
 
 '''
-Version2. Uses pdftk to extract pages from one pdf to creater another
+Version2.1.Uses pdftk to extract pages from one pdf to creater another
 
 '''
 
@@ -44,13 +45,13 @@ def extractpages(filename, info, filenameOut):
     # strip white spaces in each item of the list
     info = [ l.strip() for l in info]
     # Add A in front of every item of the list
-    info = ["A" + i for i in info]
+    info = ["A" + i for i in info] #https://stackoverflow.com/a/15738282/14451841
     print("info :" , info)
     # List -> str
     info = " ".join(info)
     print("info :" , info)
 
-    #pdftk A=in.pdf cat A1-10 A15 A17 output out.pdf
+    #pdftk A=in.pdf cat A1-10 A15 A17 output out.pdf   #https://askubuntu.com/a/282455 See comment
 
     cmd = "pdftk A={} cat {} output {}".format(filename, info, filenameOut)
     print(cmd)
@@ -68,9 +69,9 @@ def extractpages(filename, info, filenameOut):
 
 # prompt for pages to extract
 def askForPages():
-    pages = raw_input("Pages for extraction? ")
+    pages = raw_input("Pages for extraction? ") #input for some reason evaluates it. eval(input()). I think i might be using python 2 or something but the system shows 3.7.2 #https://stackoverflow.com/a/4915366/14451841
     print("pages :", pages)
-    if pages == "":
+    if pages == "": #https://stackoverflow.com/a/23979260/14451841
         print("Error Selection. Please Try again.")
         askForPages()
     else:
@@ -101,4 +102,4 @@ for filename in sys.argv[1:]:
     pp = askForPages()
     outName = askForFNameOut()
     extractpages(filename, pp, outName)
-    input('Press ENTER to exit')
+    input('Press ENTER to exit') #https://stackoverflow.com/a/15821059/14451841
