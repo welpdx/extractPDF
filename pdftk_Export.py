@@ -3,23 +3,23 @@
 import subprocess
 import sys
 import os
-
+#import shutil #for removing files
 import re
 
 '''
-Version2.1.Uses pdftk to extract pages from one pdf to creater another
+Version3. Uses pdftk to extract pages from one pdf to creater another
+Cleaned up.
+Todo:
+    1. Delete out.pdf if detected.
+    2. Create Sub folder?
 
 '''
 
 # uses pdftk to get dump information
 def getPageNumb(filename):
-
     pgnum = ""
     l = []
-
-    #cmd = f"pdftk {filename} dump_data | findstr NumberOfPages"
     cmd = "pdftk {} dump_data".format(filename)
-    # print(cmd)
     command = cmd.split()
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -27,11 +27,9 @@ def getPageNumb(filename):
         print("exception", e)
     else:
         for line in output.splitlines():
-            #print(f"Got line: {line}")
             if "NumberOfPages" in line:
                 l = [int(s) for s in line.split() if s.isdigit()]
                 pgnum = l[0]
-
     print("Pages in Document :", pgnum)
     return pgnum
 
@@ -45,14 +43,11 @@ def extractpages(filename, info, filenameOut):
     # strip white spaces in each item of the list
     info = [ l.strip() for l in info]
     # Add A in front of every item of the list
-    info = ["A" + i for i in info] #https://stackoverflow.com/a/15738282/14451841
+    info = ["A" + i for i in info]
     print("info :" , info)
     # List -> str
     info = " ".join(info)
     print("info :" , info)
-
-    #pdftk A=in.pdf cat A1-10 A15 A17 output out.pdf   #https://askubuntu.com/a/282455 See comment
-
     cmd = "pdftk A={} cat {} output {}".format(filename, info, filenameOut)
     print(cmd)
     command = cmd.split()
@@ -69,9 +64,9 @@ def extractpages(filename, info, filenameOut):
 
 # prompt for pages to extract
 def askForPages():
-    pages = raw_input("Pages for extraction? ") #input for some reason evaluates it. eval(input()). I think i might be using python 2 or something but the system shows 3.7.2 #https://stackoverflow.com/a/4915366/14451841
+    pages = raw_input("Pages for extraction? ")
     print("pages :", pages)
-    if pages == "": #https://stackoverflow.com/a/23979260/14451841
+    if pages == "":
         print("Error Selection. Please Try again.")
         askForPages()
     else:
@@ -80,9 +75,7 @@ def askForPages():
 # prompt for output filename
 def askForFNameOut():
     fName = ""
-
     fName = raw_input("Output file name? (xxx.pdf) (Defalt = out.pdf):")
-
     if fName == "":
         print("You pressed Enter. Output file name = out.pdf")
         return "out.pdf"
@@ -90,16 +83,11 @@ def askForFNameOut():
         return fName + ".pdf"
 
 
-#for testing in wing ide only
-#n = getPageNumb("in.pdf")
-#outName = askForFNameOut()
-#extractpages("in.pdf", "1 , 2-4 ,  5 ", outName)
 
 
 for filename in sys.argv[1:]:
-    #print(filename)
-    n = getPageNumb(filename) # get total page number
+    n = getPageNumb(filename)
     pp = askForPages()
     outName = askForFNameOut()
     extractpages(filename, pp, outName)
-    input('Press ENTER to exit') #https://stackoverflow.com/a/15821059/14451841
+    input('Press ENTER to exit')
