@@ -1,56 +1,104 @@
 
 
-
 import subprocess
 import sys
 import os
-import shutil
 import re
 
 '''
-Version1. Get total NumberOfPages of input file
-1. uses pdftk to get dump information
-2. Scan each line for "NumberOfPages"
-3. extract the numbers from the line
+Version2. Uses pdftk to extract pages from one pdf to creater another
 
 '''
 
-
-data = ""
-
+# uses pdftk to get dump information
 def getPageNumb(filename):
-    #fn = pathlib.Path(filename)
-    global data
+
+    pgnum = ""
     l = []
+
     #cmd = f"pdftk {filename} dump_data | findstr NumberOfPages"
     cmd = "pdftk {} dump_data".format(filename)
-    print(cmd)
+    # print(cmd)
     command = cmd.split()
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
     except Exception as e:
         print("exception", e)
     else:
-        for line in output.splitlines(): # https://stackoverflow.com/a/3437070/14451841
+        for line in output.splitlines():
             #print(f"Got line: {line}")
             if "NumberOfPages" in line:
-                l = [int(s) for s in line.split() if s.isdigit()] # https://stackoverflow.com/a/4289557/14451841
-                data = l[0]
+                l = [int(s) for s in line.split() if s.isdigit()]
+                pgnum = l[0]
 
-
-    print("data :", data)
-
-def extractpages():
-    # ask for info
-    # make a
-    return True
+    print("Pages in Document :", pgnum)
+    return pgnum
 
 
 
+# Uses gathered input to extract pdf pages
+def extractpages(filename, info, filenameOut):
 
-#n = getPageNumb("in.pdf") # for testing using ide only
+    # str -> list
+    info = info.split(",")
+    # strip white spaces in each item of the list
+    info = [ l.strip() for l in info]
+    # Add A in front of every item of the list
+    info = ["A" + i for i in info]
+    print("info :" , info)
+    # List -> str
+    info = " ".join(info)
+    print("info :" , info)
+
+    #pdftk A=in.pdf cat A1-10 A15 A17 output out.pdf
+
+    cmd = "pdftk A={} cat {} output {}".format(filename, info, filenameOut)
+    print(cmd)
+    command = cmd.split()
+
+    try:
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
+    except Exception as e:
+        print("exception", e)
+    else:
+        for line in output.splitlines():
+            print("Got line: {}".format(line))
+
+    return
+
+# prompt for pages to extract
+def askForPages():
+    pages = raw_input("Pages for extraction? ")
+    print("pages :", pages)
+    if pages == "":
+        print("Error Selection. Please Try again.")
+        askForPages()
+    else:
+        return str(pages)
+
+# prompt for output filename
+def askForFNameOut():
+    fName = ""
+
+    fName = raw_input("Output file name? (xxx.pdf) (Defalt = out.pdf):")
+
+    if fName == "":
+        print("You pressed Enter. Output file name = out.pdf")
+        return "out.pdf"
+    else:
+        return fName + ".pdf"
+
+
+#for testing in wing ide only
+#n = getPageNumb("in.pdf")
+#outName = askForFNameOut()
+#extractpages("in.pdf", "1 , 2-4 ,  5 ", outName)
 
 
 for filename in sys.argv[1:]:
-    print(filename)
-    n = getPageNumb(filename)
+    #print(filename)
+    n = getPageNumb(filename) # get total page number
+    pp = askForPages()
+    outName = askForFNameOut()
+    extractpages(filename, pp, outName)
+    input('Press ENTER to exit')
