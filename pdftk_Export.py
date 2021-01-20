@@ -19,8 +19,15 @@ Todo:
 def getPageNumb(filename):
     pgnum = ""
     l = []
-    cmd = "pdftk {} dump_data".format(filename)
+
+    # cmd = "pdftk {} dump_data".format(filename)
+    # The split() really ruins things when filename has spaces.
+    # Insert filenames manually in to the list makes it work
+    cmd = f"pdftk dump_data"
     command = cmd.split()
+    command.insert(1, filename)
+
+
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
     except Exception as e:
@@ -48,9 +55,16 @@ def extractpages(filename, info, filenameOut):
     # List -> str
     info = " ".join(info)
     print("info :" , info)
-    cmd = "pdftk A={} cat {} output {}".format(filename, info, filenameOut)
-    print(cmd)
+    cmd = "pdftk cat {} output".format(info)
+
+
+
     command = cmd.split()
+    command.insert(1, f"A={filename}")
+    command.append(filenameOut)
+
+    print("command: ", command)
+
 
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
@@ -64,7 +78,7 @@ def extractpages(filename, info, filenameOut):
 
 # prompt for pages to extract
 def askForPages():
-    pages = raw_input("Pages for extraction? ")
+    pages = input("Pages for extraction? ")
     print("pages :", pages)
     if pages == "":
         print("Error Selection. Please Try again.")
@@ -75,7 +89,7 @@ def askForPages():
 # prompt for output filename
 def askForFNameOut():
     fName = ""
-    fName = raw_input("Output file name? (xxx.pdf) (Defalt = out.pdf):")
+    fName = input("Output file name? (xxx.pdf) (Defalt = out.pdf):")
     if fName == "":
         print("You pressed Enter. Output file name = out.pdf")
         return "out.pdf"
